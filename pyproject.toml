@@ -1,0 +1,20 @@
+[project]
+name = "software-e2e-backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.15.2"
+dependencies = [
+    "fastapi>=0.165.0,<0.166.0",
+    "pydantic>=2.14.4",
+    "pydantic-settings>=2.16.3",
+    "sqlalchemy>=2.1.9",
+    "uvicorn>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.7.0",
+    "pre-commit-uv>=4.4.3",
+    "ruff>=0.17.6",
+]
