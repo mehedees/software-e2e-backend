@@ -2,24 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Status
+@README.md
 
-Early-stage FastAPI backend boilerplate: no application code, tests, or pre-commit config exist yet (only `pyproject.toml`, `ruff.toml`, `uv.lock`). Update this file as structure emerges.
+## Where docs live
 
-## Stack
+Each fact has one home. Update it there and don't copy it anywhere else.
 
-Python 3.15.2 (pinned in `.python-version`), managed with `uv`. FastAPI, Pydantic v2 / pydantic-settings, SQLAlchemy 2.x, Uvicorn. Dev tools: ruff, pre-commit (with pre-commit-uv).
+- **README.md** (imported above): stack, commands, layout, API conventions and commit rules. These are short rules that point into the code.
+- **Code comments and docstrings:** how a piece of code works and how to use it. `core/schema/response.py` covers the envelopes, and `core/router.py` covers the 422 logic and the `get_flat_params` upgrade checklist.
+- **`docs/adr/`:** architecture decisions: what was chosen, the alternatives, and why. They point to the code for details instead of repeating them. Add a new numbered ADR to change a decision; don't rewrite an accepted one.
+- **This file:** only notes for Claude that don't belong in the README.
 
-## Commands
+When the structure, commands or conventions change, update the README in the same change.
 
-- Install deps: `uv sync`
-- Lint: `uv run ruff check .` (add `--fix` to autofix)
-- Format: `uv run ruff format .`
-- Run server (once an app exists, e.g. `app/main.py`): `uv run uvicorn app.main:app --reload`
+## Notes for Claude
 
-No test runner is configured yet; add one (e.g. pytest) to dev dependencies before writing tests.
-
-## Conventions
-
-- Commit messages must follow Conventional Commits (`type(scope): description`; types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert). Enforced by the `conventional-pre-commit` `commit-msg` hook in `.pre-commit-config.yaml`.
-- Ruff config is in `ruff.toml` (target `py315`, line length 88, `app` as first-party for isort). `E501` and `B008` are ignored (the latter for FastAPI `Depends()` defaults).
+- Early stage. There are no tests yet, so add pytest to the dev dependencies before you write any. The first test to write is the `get_flat_params` upgrade check in `core/router.py`.
+- `httpx2` is a dev dependency because Starlette's `TestClient` imports it.
