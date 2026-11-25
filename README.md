@@ -16,6 +16,7 @@ Another FastAPI boilerplate.
 ```sh
 uv sync                        # install dependencies (installs `app` in editable mode)
 uv run pre-commit install      # enable the pre-commit and commit-msg hooks
+cp .env.example .env           # local settings, see [Settings](#settings)
 ```
 
 ## Development
@@ -36,7 +37,9 @@ Once `app` is defined in `server.py`:
 uv run uvicorn app.apps.api_service.server:app --reload
 ```
 
-CORS is off until `CORS_ALLOW_ORIGINS` is set (comma-separated). The other `CORS_*` variables are listed in `core/settings.py`.
+The API fails at startup unless the required common settings are set: `DEPLOYMENT_ENV`, the MySQL host, user, password and database, and `REDIS_HOST`.
+
+CORS is off until `API_CORS_ALLOW_ORIGINS` is set (comma-separated; renamed from `CORS_ALLOW_ORIGINS`, which is now ignored). The other `API_CORS_*` variables are listed in `core/settings.py`.
 
 ## Layout
 
@@ -54,10 +57,30 @@ src/app/
 │   │       ├── middlewares/  request context and request/trace ids (ASGI middlewares)
 │   │       ├── schema/       APIResponse / APIErrorResponse envelopes
 │   │       ├── router.py     project APIRouter
-│   │       └── settings.py   env-driven settings (CORS)
-│   └── worker/               background worker (empty)
-└── libs/                     shared code (empty)
+│   │       └── settings.py   APISettings (API_*)
+│   └── worker/               background worker
+│       └── settings.py       WorkerSettings (WORKER_*)
+└── libs/                     shared code
+    └── settings/
+        ├── base.py           BaseAppSettings: shared settings config and helpers
+        └── common.py         CommonSettings: config shared by all services
 ```
+
+## Settings
+
+Settings come from environment variables, with `.env` as a fallback. `.env.example` lists every key. The reasons behind the rules are in [ADR 0002](docs/adr/0002-settings-management.md).
+
+| Kind | Class | Env var |
+|---|---|---|
+| Shared by all services (MySQL, Redis, ...) | `CommonSettings` in `libs/settings/common.py` | `<RESPONSIBILITY>_<KEY>`, e.g. `MYSQL_HOST` |
+| Used by one service | that service's `settings.py` | `<SERVICE>_<RESPONSIBILITY>_<KEY>`, e.g. `API_CORS_ALLOW_ORIGINS` |
+
+- Every settings class subclasses `BaseAppSettings`, which has no fields. A subclass sets only `env_prefix`.
+- A service class never subclasses `CommonSettings`. Code reads `get_common_settings()` for shared values and the service's `get_settings()` for its own. Don't instantiate the classes directly.
+- Field names are upper case, and env names are case-sensitive. A field name is the env var minus the service prefix (`CORS_ALLOW_ORIGINS` on `APISettings`).
+- Common names never start with a service prefix. A new service picks a prefix no other service uses.
+- Names describing the app or service itself have no responsibility part: `DEPLOYMENT_ENV` (`dev`, `sit`, `uat` or `prod`), `DEBUG` and `LOG_LEVEL` in `CommonSettings`, and `API_TITLE`, `API_VERSION`, `API_DOCS_URL` and the like in `APISettings`. Project name, description and version default to `pyproject.toml`.
+- In prod (`DEPLOYMENT_ENV=prod`), the API's OpenAPI schema and doc pages are always off, and `DEBUG=true` prints a warning at startup.
 
 ## API conventions
 

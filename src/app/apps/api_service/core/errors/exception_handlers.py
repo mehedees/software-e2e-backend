@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from fastapi import FastAPI, Request, status
+from fastapi import Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -71,7 +71,7 @@ async def api_exception_handler(request: Request, exc: APIException) -> JSONResp
     )
 
 
-async def http_exception_handler(
+async def common_http_exception_handler(
     request: Request, exc: StarletteHTTPException
 ) -> JSONResponse:
     """Return `HTTPException`s (incl. routing 404/405) as an `APIErrorResponse`.
@@ -103,10 +103,3 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
             message=_status_phrase(status.HTTP_500_INTERNAL_SERVER_ERROR),
         ),
     )
-
-
-def register_exception_handlers(app: FastAPI) -> None:
-    app.add_exception_handler(RequestValidationError, request_validation_error_handler)
-    app.add_exception_handler(APIException, api_exception_handler)
-    app.add_exception_handler(StarletteHTTPException, http_exception_handler)
-    app.add_exception_handler(Exception, unhandled_exception_handler)

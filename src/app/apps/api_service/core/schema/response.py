@@ -156,3 +156,13 @@ class APIErrorResponse(BaseModel):
     code: str
     message: str
     errors: list[ErrorDetail] = []
+
+
+class InternalServerError(APIErrorResponse):
+    code: str = "INTERNAL_ERROR"
+    message: str = "Internal Server Error"
+
+
+# Errors generated from firewalls
+class FirewallError(BaseModel):
+    supportID: str  # noqa
